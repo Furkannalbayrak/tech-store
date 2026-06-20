@@ -38,6 +38,16 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
+
+		<!--
+			OAuth2 Resource Server: Clerk'in imzaladığı JWT token'larını doğrulamak için.
+			Spring Security, Clerk'in JWKS endpoint'inden public key'i çekip
+			her gelen JWT'nin imzasını bu key ile doğrular.
+		-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
