@@ -2,353 +2,231 @@
 
 /**
  * components/layout/Navbar.tsx
- * -----------------------------
- * Ana navigasyon çubuğu — premium dark tech-store tasarımı.
+ * ----------------------------------------
+ * Amazon / Vatan Bilgisayar tarzı İKİ KATLI MEGA NAVBAR.
  *
- * ÖZELLİKLER:
- *  - Scroll'da arka plan bulanıklaştırma (backdrop-blur) efekti
- *  - Tam ekran mobil menü (hamburger toggle)
- *  - Arama çubuğu (SearchBar) ile entegrasyon
- *  - Clerk'in UserButton / SignInButton duruma göre gösterilir
- *  - Sepet ikonu (ilerideki adımda Redux/Zustand ile bağlanacak)
+ * KATMAN 1 (h-16): Logo | Kategori+Arama | Giriş Yap | Sepetim
+ * KATMAN 2 (h-10): Yatay kategori navigasyon barı (gri arka plan)
  *
- * "use client" — Clerk hook'ları (useAuth, useUser) ve scroll listener
- * React state gerektirdiğinden bu bileşen Client Component'tır.
+ * Tasarım kuralları:
+ *  - Beyaz arka plan, gri sınırlar
+ *  - Süslü efekt YOK (neon, glow, gradient yok)
+ *  - Büyük, belirgin arama çubuğu
+ *  - Sade ikonlar + etiket
+ *  - Mobil: hamburger menü
  */
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth, SignInButton, UserButton } from "@clerk/nextjs";
 import {
-  ShoppingCart,
-  Search,
-  Cpu,
-  Menu,
-  X,
-  Zap,
+  Search, ShoppingCart, User, Menu, X,
+  ChevronDown, Cpu,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
-// ---------------------------------------------------------------------------
-// NAVİGASYON LİNK'LERİ
-// ---------------------------------------------------------------------------
+
+
+/* ============================================================
+   ALT NAVİGASYON LİNK'LERİ
+   ============================================================ */
 const NAV_LINKS = [
-  { href: "/products", label: "Tüm Ürünler" },
-  { href: "/products?category=Laptop", label: "Laptop" },
-  { href: "/products?category=Smartphone", label: "Telefon" },
-  { href: "/products?category=GPU", label: "Ekran Kartı" },
-  { href: "/products?category=Monitor", label: "Monitör" },
+  { label: "🔥 Fırsatlar",        href: "/products?onlyDiscount=1" },
+  { label: "Laptop",              href: "/products?category=Laptop" },
+  { label: "Masaüstü PC",         href: "/products?category=Masa%C3%BCst%C3%BC+PC" },
+  { label: "Telefon",             href: "/products?category=Ak%C4%B1ll%C4%B1+Telefon" },
+  { label: "Tablet",              href: "/products?category=Tablet" },
+  { label: "Ekran Kartı",         href: "/products?category=Ekran+Kart%C4%B1" },
+  { label: "Monitör",             href: "/products?category=Monit%C3%B6r" },
+  { label: "Klavye & Mouse",      href: "/products?category=Klavye+%26+Mouse" },
+  { label: "Kulaklık",            href: "/products?category=Kulakl%C4%B1k" },
+  { label: "SSD & Depolama",      href: "/products?category=SSD+%26+Depolama" },
+  { label: "Ağ Ürünleri",         href: "/products?category=A%C4%9F+%C3%9Cr%C3%BCnleri" },
+  { label: "Aksesuarlar",         href: "/products?category=Aksesuarlar" },
+  { label: "PC Toplama",          href: "/products?category=PC+Toplama" },
 ];
 
-// ---------------------------------------------------------------------------
-// ANA BİLEŞEN
-// ---------------------------------------------------------------------------
+/* ============================================================
+   ANA BİLEŞEN
+   ============================================================ */
 export default function Navbar() {
-  /** Clerk: kullanıcı oturum durumu */
   const { isSignedIn } = useAuth();
-  /** Scroll pozisyonuna göre arka plan değişimi */
-  const [isScrolled, setIsScrolled] = useState(false);
-  /** Mobil menü açık/kapalı durumu */
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  /** Arama çubuğu açık/kapalı durumu */
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  /** Arama input değeri */
-  const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
 
-  /**
-   * Scroll dinleyicisi: 20px'den fazla kaydırıldığında
-   * navbar arka planı blur + koyu efekti alır.
-   */
-  useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  const [searchQuery, setSearchQuery]     = useState("");
+  const [isMobileOpen, setIsMobileOpen]   = useState(false);
 
-  /** Mobil menü açıkken body scroll'u engelle */
-  useEffect(() => {
-    document.body.style.overflow = isMobileMenuOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
-  }, [isMobileMenuOpen]);
-
-  /** Arama formunu gönder */
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
-    // Bir sonraki adımda router.push ile arama sayfasına yönlendirilecek
-    window.location.href = `/products?keyword=${encodeURIComponent(searchQuery.trim())}`;
-    setIsSearchOpen(false);
+    const params = new URLSearchParams();
+    params.set("keyword", searchQuery.trim());
+    router.push(`/products?${params.toString()}`);
     setSearchQuery("");
   };
 
   return (
     <>
-      {/* ================================================================
-          ANA NAVBAR
-          ================================================================ */}
-      <header
-        className={cn(
-          // Pozisyon ve z-index: sayfanın en üstünde sabit durur
-          "fixed top-0 left-0 right-0 z-50",
-          // Geçiş animasyonu
-          "transition-all duration-300 ease-in-out",
-          // Scroll'a göre arka plan değişimi
-          isScrolled
-            ? "bg-zinc-950/90 backdrop-blur-xl border-b border-zinc-800/60 shadow-2xl shadow-black/20"
-            : "bg-transparent"
-        )}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 lg:h-18">
+      {/* ==============================================================
+          NAVBAR WRAPPER — Sabit, tam genişlik, beyaz arka plan
+          ============================================================== */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm">
+
+        {/* ============================================================
+            KATMAN 1: Logo | Arama | Kullanıcı
+            h-16 = 64px
+            ============================================================ */}
+        <div className="border-b border-gray-200">
+          <div className="max-w-[1440px] mx-auto px-4 h-16 flex items-center gap-4">
 
             {/* ---- LOGO ---- */}
-            <Link
-              href="/"
-              className="flex items-center gap-2.5 group flex-shrink-0"
-            >
-              {/* Logo ikonu — elektrik efektli */}
-              <div className="relative flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-violet-600 shadow-lg shadow-blue-500/30 group-hover:shadow-blue-500/50 transition-all duration-300 group-hover:scale-105">
-                <Cpu className="w-5 h-5 text-white" strokeWidth={1.8} />
-                <Zap
-                  className="absolute -top-1 -right-1 w-3.5 h-3.5 text-yellow-400 fill-yellow-400"
-                  strokeWidth={2}
-                />
+            <Link href="/" className="flex items-center gap-2 flex-shrink-0 group">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-700">
+                <Cpu className="w-4.5 h-4.5 text-white" strokeWidth={2} />
               </div>
-              {/* Logo metni */}
               <div className="flex flex-col leading-none">
-                <span className="text-lg font-bold tracking-tight text-white">
-                  Tech
-                  <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">
-                    Store
-                  </span>
+                <span className="text-xl font-extrabold text-blue-700 tracking-tight">
+                  Tech<span className="text-orange-500">Store</span>
                 </span>
-                <span className="text-[10px] font-medium tracking-widest text-zinc-500 uppercase">
-                  Premium Tech
+                <span className="text-[9px] font-semibold tracking-widest text-gray-400 uppercase">
+                  Hipermarket
                 </span>
               </div>
             </Link>
 
-            {/* ---- MASAÜSTÜ NAVİGASYON ---- */}
-            <nav className="hidden lg:flex items-center gap-1">
-              {NAV_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="relative px-3.5 py-2 text-sm font-medium text-zinc-400 rounded-lg
-                             hover:text-white hover:bg-white/5
-                             transition-all duration-200
-                             group"
-                >
-                  {link.label}
-                  {/* Hover'da alt çizgi efekti */}
-                  <span className="absolute bottom-1 left-3.5 right-3.5 h-px bg-gradient-to-r from-blue-500 to-violet-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left rounded-full" />
-                </Link>
-              ))}
-            </nav>
+            {/* ---- BÜYÜK ARAMA ÇUBUĞU (flex-1) ---- */}
+            <form
+              onSubmit={handleSearch}
+              className="flex-1 flex items-stretch h-10 rounded-md overflow-hidden border border-gray-300 hover:border-blue-500 focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-100 transition-all"
+            >
 
-            {/* ---- SAĞ EYLEMLER ---- */}
-            <div className="flex items-center gap-2">
 
-              {/* Arama butonu — masaüstü */}
+              {/* Metin girişi */}
+              <input
+                id="navbar-search"
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Ürün, marka veya kategori ara..."
+                className="flex-1 px-4 text-sm text-gray-800 placeholder-gray-400 bg-white focus:outline-none"
+              />
+
+              {/* Ara butonu */}
               <button
+                type="submit"
                 id="navbar-search-btn"
-                onClick={() => setIsSearchOpen(!isSearchOpen)}
-                className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl
-                           text-zinc-400 text-sm
-                           bg-white/5 border border-zinc-800
-                           hover:bg-white/10 hover:text-white hover:border-zinc-600
-                           transition-all duration-200"
-                aria-label="Ara"
+                className="px-5 bg-blue-700 hover:bg-blue-800 text-white transition-colors flex-shrink-0 flex items-center gap-1.5"
               >
                 <Search className="w-4 h-4" />
-                <span className="hidden md:inline text-xs text-zinc-500">Ürün ara...</span>
+                <span className="hidden md:inline text-sm font-semibold">Ara</span>
               </button>
+            </form>
 
-              {/* Sepet butonu */}
+            {/* ---- SAĞ EYLEMLER ---- */}
+            <div className="flex items-center gap-1 flex-shrink-0">
+
+              {/* Giriş Yap / Profil */}
+              {isSignedIn ? (
+                <div className="flex flex-col items-center gap-0.5 px-3">
+                  <UserButton />
+                  <span className="text-[10px] text-gray-500 hidden sm:block">Hesabım</span>
+                </div>
+              ) : (
+                <SignInButton mode="modal">
+                  <button
+                    id="navbar-signin-btn"
+                    className="flex flex-col items-center gap-0.5 px-3 py-1.5 hover:bg-gray-100 rounded-lg transition-colors group"
+                  >
+                    <User className="w-5 h-5 text-gray-600 group-hover:text-blue-700" />
+                    <span className="text-[11px] text-gray-600 group-hover:text-blue-700 font-medium hidden sm:block">
+                      Giriş Yap
+                    </span>
+                  </button>
+                </SignInButton>
+              )}
+
+              {/* Sepetim */}
               <Link
                 href="/cart"
                 id="navbar-cart-btn"
-                className="relative flex items-center justify-center w-9 h-9 rounded-xl
-                           text-zinc-400
-                           hover:text-white hover:bg-white/10
-                           transition-all duration-200"
-                aria-label="Sepete git"
+                className="relative flex flex-col items-center gap-0.5 px-3 py-1.5 hover:bg-gray-100 rounded-lg transition-colors group"
               >
-                <ShoppingCart className="w-5 h-5" />
-                {/* Sepet sayacı badge — ilerideki adımda dinamik yapılacak */}
-                <span className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 rounded-full bg-blue-500 text-[9px] font-bold text-white leading-none">
-                  0
+                <div className="relative">
+                  <ShoppingCart className="w-5 h-5 text-gray-600 group-hover:text-blue-700" />
+                  {/* Sepet sayacı — ilerideki adımda Zustand'a bağlanacak */}
+                  <span className="absolute -top-2 -right-2 flex items-center justify-center w-4 h-4 rounded-full bg-orange-500 text-[9px] font-bold text-white">
+                    0
+                  </span>
+                </div>
+                <span className="text-[11px] text-gray-600 group-hover:text-blue-700 font-medium hidden sm:block">
+                  Sepetim
                 </span>
               </Link>
 
-              {/* Clerk kimlik doğrulama butonları */}
-              <div className="flex items-center">
-                {isSignedIn ? (
-                  /* Giriş yapılmış → Clerk profil butonu */
-                  <UserButton
-                    appearance={{
-                      elements: {
-                        avatarBox: "w-9 h-9 ring-2 ring-blue-500/40 hover:ring-blue-500/80 transition-all duration-200",
-                      },
-                    }}
-                  />
-                ) : (
-                  /* Giriş yapılmamış → Sign In butonu */
-                  <SignInButton mode="modal">
-                    <button
-                      id="navbar-signin-btn"
-                      className="px-4 py-2 text-sm font-semibold rounded-xl
-                                 bg-gradient-to-r from-blue-500 to-violet-600
-                                 hover:from-blue-400 hover:to-violet-500
-                                 text-white shadow-lg shadow-blue-500/25
-                                 hover:shadow-blue-500/40 hover:scale-[1.02]
-                                 transition-all duration-200"
-                    >
-                      Giriş Yap
-                    </button>
-                  </SignInButton>
-                )}
-              </div>
-
-              {/* Mobil hamburger butonu */}
+              {/* Mobil hamburger */}
               <button
-                id="navbar-mobile-menu-btn"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="lg:hidden flex items-center justify-center w-9 h-9 rounded-xl
-                           text-zinc-400 hover:text-white hover:bg-white/10
-                           transition-all duration-200"
-                aria-label={isMobileMenuOpen ? "Menüyü kapat" : "Menüyü aç"}
+                id="navbar-mobile-btn"
+                onClick={() => setIsMobileOpen(o => !o)}
+                className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                aria-label={isMobileOpen ? "Menüyü kapat" : "Menüyü aç"}
               >
-                {isMobileMenuOpen ? (
-                  <X className="w-5 h-5" />
-                ) : (
-                  <Menu className="w-5 h-5" />
-                )}
+                {isMobileOpen
+                  ? <X className="w-5 h-5 text-gray-700" />
+                  : <Menu className="w-5 h-5 text-gray-700" />
+                }
               </button>
             </div>
           </div>
+        </div>
 
-          {/* ---- MASAÜSTÜ ARAMA ÇUBUĞU (Açılır panel) ---- */}
-          <div
-            className={cn(
-              "overflow-hidden transition-all duration-300 ease-in-out",
-              isSearchOpen ? "max-h-20 pb-3 opacity-100" : "max-h-0 opacity-0"
-            )}
-          >
-            <form onSubmit={handleSearch} className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-              <input
-                id="navbar-search-input"
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Ürün, marka veya kategori ara..."
-                autoFocus={isSearchOpen}
-                className="w-full pl-11 pr-4 py-3 rounded-xl text-sm
-                           bg-zinc-900 border border-zinc-700
-                           text-white placeholder-zinc-500
-                           focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
-                           transition-all duration-200"
-              />
-              <button
-                type="submit"
-                className="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1.5 text-xs font-medium rounded-lg
-                           bg-blue-500 hover:bg-blue-400 text-white transition-colors"
-              >
-                Ara
-              </button>
-            </form>
+        {/* ============================================================
+            KATMAN 2: KATEGORİ NAVİGASYON BARI
+            h-10 = 40px, açık gri arka plan
+            ============================================================ */}
+        <div className="bg-gray-100 border-b border-gray-200 hidden lg:block">
+          <div className="max-w-[1440px] mx-auto px-4">
+            <nav className="flex items-center gap-0 h-10 overflow-x-auto scroll-x-smooth">
+              {NAV_LINKS.map(link => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="flex-shrink-0 px-4 h-full flex items-center text-[13px] font-medium text-gray-700
+                             hover:bg-white hover:text-blue-700 border-b-2 border-transparent
+                             hover:border-blue-700 transition-all duration-150 whitespace-nowrap"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
           </div>
         </div>
       </header>
 
-      {/* ================================================================
-          MOBİL MENÜ (Tam ekran overlay)
-          ================================================================ */}
-      <div
-        className={cn(
-          "fixed inset-0 z-40 lg:hidden",
-          "transition-all duration-300 ease-in-out",
-          isMobileMenuOpen
-            ? "opacity-100 pointer-events-auto"
-            : "opacity-0 pointer-events-none"
-        )}
-      >
-        {/* Karartma overlay */}
-        <div
-          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-
-        {/* Menü paneli */}
-        <div
-          className={cn(
-            "absolute top-16 left-0 right-0 bottom-0",
-            "bg-zinc-950 border-t border-zinc-800",
-            "flex flex-col overflow-y-auto",
-            "transition-transform duration-300 ease-in-out",
-            isMobileMenuOpen ? "translate-y-0" : "-translate-y-4"
-          )}
-        >
-          {/* Mobil arama */}
-          <div className="p-4 border-b border-zinc-800/60">
-            <form onSubmit={handleSearch} className="relative">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-              <input
-                id="mobile-search-input"
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Ürün ara..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm
-                           bg-zinc-900 border border-zinc-800 text-white
-                           placeholder-zinc-600
-                           focus:outline-none focus:border-blue-500"
-              />
-            </form>
-          </div>
-
-          {/* Mobil nav linkleri */}
-          <nav className="flex flex-col p-4 gap-1">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center px-4 py-3.5 rounded-xl text-sm font-medium
-                           text-zinc-300 hover:text-white hover:bg-white/5
-                           transition-all duration-150"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-
-          {/* Mobil alt alan — Clerk butonları */}
-          <div className="mt-auto p-4 border-t border-zinc-800/60">
-            {isSignedIn ? (
-              <div className="flex items-center gap-3 px-2">
-                <UserButton />
-                <span className="text-sm text-zinc-400">Hesabım</span>
-              </div>
-            ) : (
-              <SignInButton mode="modal">
-                <button
-                  id="mobile-signin-btn"
-                  className="w-full py-3 text-sm font-semibold rounded-xl
-                             bg-gradient-to-r from-blue-500 to-violet-600
-                             text-white text-center"
+      {/* ==============================================================
+          MOBİL MENÜ
+          ============================================================== */}
+      {isMobileOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/40"
+            onClick={() => setIsMobileOpen(false)}
+          />
+          <div className="fixed top-16 left-0 right-0 z-40 bg-white border-b border-gray-200 shadow-lg max-h-[70vh] overflow-y-auto">
+            <nav className="flex flex-col py-2">
+              {NAV_LINKS.map(link => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setIsMobileOpen(false)}
+                  className="px-6 py-3 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 border-b border-gray-100 transition-colors"
                 >
-                  Giriş Yap
-                </button>
-              </SignInButton>
-            )}
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
           </div>
-        </div>
-      </div>
-
-      {/* Navbar yüksekliği kadar boşluk — içerik arkaya gizlenmesin */}
-      <div className="h-16 lg:h-18" aria-hidden="true" />
+        </>
+      )}
     </>
   );
 }
