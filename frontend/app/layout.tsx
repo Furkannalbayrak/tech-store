@@ -4,63 +4,54 @@ import { ClerkProvider } from "@clerk/nextjs";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
-// ---------------------------------------------------------------------------
-// SEO METADATA
-// ---------------------------------------------------------------------------
+/* ============================================================
+   SEO METADATA
+   ============================================================ */
 export const metadata: Metadata = {
   title: {
-    /** %s → Sayfa başlığı şablonu: "Laptoplar | TechStore" şeklinde oluşur */
-    template: "%s | TechStore",
-    default: "TechStore — Premium Teknoloji Mağazası",
+    template: "%s | TechStore — Türkiye'nin Teknoloji Hipermarketi",
+    default: "TechStore — Laptop, Telefon, PC Bileşeni ve Daha Fazlası",
   },
   description:
-    "Türkiye'nin en kapsamlı teknoloji mağazası. Laptop, akıllı telefon, ekran kartı ve daha fazlası — hızlı teslimat, güvenli alışveriş.",
-  keywords: ["laptop", "akıllı telefon", "ekran kartı", "teknoloji", "bilgisayar"],
+    "Türkiye'nin en büyük teknoloji mağazası. 50.000'den fazla ürün: laptop, akıllı telefon, ekran kartı, monitör, klavye, kulaklık ve daha fazlası. Güvenli ödeme, hızlı teslimat.",
+  keywords: ["laptop", "akıllı telefon", "ekran kartı", "monitör", "teknoloji", "bilgisayar", "vatan", "amazon"],
   authors: [{ name: "TechStore" }],
   openGraph: {
     type: "website",
     locale: "tr_TR",
     siteName: "TechStore",
-    title: "TechStore — Premium Teknoloji Mağazası",
-    description: "Türkiye'nin en kapsamlı teknoloji mağazası.",
+    title: "TechStore — Türkiye'nin Teknoloji Hipermarketi",
+    description: "50.000+ ürün, güvenli ödeme, hızlı teslimat.",
   },
 };
 
-// ---------------------------------------------------------------------------
-// ROOT LAYOUT
-// ---------------------------------------------------------------------------
-/**
- * Tüm sayfaların sarmalandığı kök düzen bileşeni.
- *
- * YAPILANMA:
- *   ClerkProvider (kimlik doğrulama bağlamı)
- *     └─ Navbar (sabit üst menü — dark, blur efektli)
- *     └─ <main> (sayfa içeriği — flex ile dolu yükseklik)
- *     └─ Footer (alt bilgi)
- *
- * dark sınıfı html etiketine eklendi: Tailwind'in dark: varyantı böyle aktif olur.
- * Tüm uygulama koyu tema üzerine inşa edilmiştir.
- *
- * antialiased: Metin render kalitesini artırır (subpixel anti-aliasing).
- */
+/* ============================================================
+   ROOT LAYOUT
+   ============================================================
+   - dark class YOK — beyaz tema
+   - body: bg-gray-100 (sayfalar içinde kartlar bg-white ile öne çıkar)
+   - Inter font CSS @import ile globals.css'de yükleniyor
+   ============================================================ */
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="tr" className="dark">
-      <body className="antialiased bg-zinc-950 text-zinc-100 min-h-screen flex flex-col">
+    <html lang="tr">
+      {/* dark class TAMAMEN KALDIRILDI */}
+      <body className="antialiased min-h-screen flex flex-col bg-gray-100 text-gray-900">
         <ClerkProvider>
-          {/* Sabit üst navigasyon çubuğu */}
+          {/* İki katlı mega navbar — sayfanın üstünde sabit */}
           <Navbar />
 
-          {/* Sayfa içeriği: Navbar ve Footer arasında esner */}
+          {/* Navbar yüksekliği kadar boşluk (2 satır = ~112px) */}
+          <div className="h-[112px]" aria-hidden="true" />
+
+          {/* Sayfa içeriği */}
           <main className="flex-1">
             {children}
           </main>
 
-          {/* Alt bilgi alanı */}
+          {/* Alt bilgi */}
           <Footer />
         </ClerkProvider>
       </body>
