@@ -17,6 +17,7 @@
  */
 
 import type {
+  CategoryInfo,
   PagedResponse,
   ProductDetail,
   ProductFilterRequest,
@@ -125,5 +126,29 @@ export async function filterByAttribute(key: string, value: string, params?: Pro
     "/products/attributes",
     { params: { key, value, ...params } }
   );
+  return response.data;
+}
+
+// ---------------------------------------------------------------------------
+// KATEGORİ VE MARKA FONKSİYONLARI
+// ---------------------------------------------------------------------------
+
+/**
+ * Navbar Mega Menü ve filtre paneli için tüm aktif kategorileri getirir.
+ * Backend: GET /api/v1/products/categories
+ *
+ * Her kategori için ad ve ürün sayısını içerir.
+ */
+export async function getCategories(): Promise<CategoryInfo[]> {
+  const response = await apiClient.get<CategoryInfo[]>("/products/categories");
+  return response.data;
+}
+
+/**
+ * FilterSidebar marka checkbox listesi için tüm aktif markaları getirir.
+ * Backend: GET /api/v1/products/brands
+ */
+export async function getBrands(): Promise<string[]> {
+  const response = await apiClient.get<string[]>("/products/brands");
   return response.data;
 }

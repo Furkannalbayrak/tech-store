@@ -111,11 +111,24 @@ export interface User {
  * Backend: ErrorResponse.java
  */
 export interface ApiError {
-  timestamp: string;  // ISO-8601 UTC
-  status: number;     // HTTP kodu (404, 400 vb.)
-  error: string;      // HTTP açıklaması ("Not Found" vb.)
-  message: string;    // İnsan okunabilir hata mesajı
-  path: string;       // Hatanın oluştuğu endpoint URL'si
+  timestamp: string;
+  status: number;
+  error: string;
+  message: string;
+  path: string;
+}
+
+// ---------------------------------------------------------------------------
+// KATEGORİ TİPİ
+// ---------------------------------------------------------------------------
+
+/**
+ * GET /api/v1/products/categories yanıtında dönen kategori özet bilgisi.
+ * Backend: CategorySummaryResponse.java
+ */
+export interface CategoryInfo {
+  name: string;         // Kategori adı ("Laptop", "Akıllı Telefon" ...)
+  productCount: number; // Bu kategorideki aktif ürün sayısı
 }
 
 // ---------------------------------------------------------------------------
