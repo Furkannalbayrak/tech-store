@@ -1,11 +1,13 @@
 package com.techstore.backend.application.service;
 
+import com.techstore.backend.application.dto.product.CategorySummaryResponse;
 import com.techstore.backend.application.dto.product.ProductDetailResponse;
 import com.techstore.backend.application.dto.product.ProductFilterRequest;
 import com.techstore.backend.application.dto.product.ProductSummaryResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -96,4 +98,18 @@ public interface ProductService {
      * @return Eşleşen ürünlerin sayfalanmış listesi
      */
     Page<ProductSummaryResponse> filterByAttribute(String key, String value, Pageable pageable);
+
+    /**
+     * Navbar Mega Menü için aktif ürünlerin benzersiz kategorilerini ve ürün sayılarını döndürür.
+     *
+     * @return Her kategorinin adı ve kaç ürün barındırdığını gösteren liste
+     */
+    List<CategorySummaryResponse> getCategories();
+
+    /**
+     * Filtre paneli için aktif ürünlerin benzersiz marka listesini döndürür.
+     *
+     * @return Marka adları listesi (alfabetik sıralı)
+     */
+    List<String> getBrands();
 }

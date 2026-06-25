@@ -391,4 +391,54 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
             @Param("queryEmbedding") String queryEmbedding,
             @Param("limit")         int limit
     );
+
+    // =========================================================================
+    // KATEGORİ VE MARKA KEŞFETME
+    // =========================================================================
+
+    /**
+     * Aktif ürünlerde kullanılan TÜM benzersiz kategorileri döndürür.
+     * Navbar Mega Menü ve filtre paneli için kullanılır.
+     *
+     * @return Benzersiz kategori adları listesi (alfabetik sıralı)
+     */
+    @Query("""
+            SELECT DISTINCT p.category
+            FROM Product p
+            WHERE p.isActive = true
+              AND p.category IS NOT NULL
+            ORDER BY p.category ASC
+            """)
+    List<String> findDistinctActiveCategories();
+
+    /**
+     * Aktif ürünlerde kullanılan TÜM benzersiz markaları döndürür.
+     * Filtre paneli marka listesi için kullanılır.
+     *
+     * @return Benzersiz marka adları listesi (alfabetik sıralı)
+     */
+    @Query("""
+            SELECT DISTINCT p.brand
+            FROM Product p
+            WHERE p.isActive = true
+              AND p.brand IS NOT NULL
+            ORDER BY p.brand ASC
+            """)
+    List<String> findDistinctActiveBrands();
+
+    /**
+     * Her kategori için aktif ürün sayısını döndürür.
+     * Navbar'daki kategori etiketlerinde ürün sayısı göstermek için.
+     *
+     * @return [kategori, count] çiftleri listesi
+     */
+    @Query(value = """
+            SELECT category, COUNT(*) as product_count
+            FROM products
+            WHERE is_active = true
+              AND category IS NOT NULL
+            GROUP BY category
+            ORDER BY product_count DESC
+            """, nativeQuery = true)
+    List<Object[]> countProductsByCategory();
 }

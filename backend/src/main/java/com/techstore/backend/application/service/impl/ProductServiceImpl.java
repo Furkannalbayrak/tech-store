@@ -2,6 +2,7 @@ package com.techstore.backend.application.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.techstore.backend.application.dto.product.CategorySummaryResponse;
 import com.techstore.backend.application.dto.product.ProductDetailResponse;
 import com.techstore.backend.application.dto.product.ProductFilterRequest;
 import com.techstore.backend.application.dto.product.ProductSummaryResponse;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -267,9 +269,39 @@ public class ProductServiceImpl implements ProductService {
         try {
             return objectMapper.writeValueAsString(attributeFilters);
         } catch (JsonProcessingException e) {
-            // Serileştirme başarısız olursa iş akışını durdurmak için RuntimeException
             log.error("[ProductService] JSONB filtre string'i oluşturulamadı. hata={}", e.getMessage());
             throw new IllegalArgumentException("Geçersiz attribute filtresi: " + e.getMessage(), e);
         }
+    }
+
+    // =========================================================================
+    // KATEGORİ VE MARKA METODLARI
+    // =========================================================================
+
+    /**
+     * Navbar Mega Menü için aktif kategorileri ve ürün sayılarını döndürür.
+     * Veriler countProductsByCategory() native sorgusuyla çekilir.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<CategorySummaryResponse> getCategories() {
+        log.debug("[ProductService] Kategori listesi isteniyor.");
+        return productRepository.countProductsByCategory()
+                .stream()
+                .map(row -> new CategorySummaryResponse(
+                        (String) row[0],
+                        ((Number) row[1]).longValue()
+                ))
+                .toList();
+    }
+
+    /**
+     * Filtre paneli için aktif ürünlerin benzersiz marka listesini döndürür.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<String> getBrands() {
+        log.debug("[ProductService] Marka listesi isteniyor.");
+        return productRepository.findDistinctActiveBrands();
     }
 }

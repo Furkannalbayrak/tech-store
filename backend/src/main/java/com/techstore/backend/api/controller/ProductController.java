@@ -1,5 +1,6 @@
 package com.techstore.backend.api.controller;
 
+import com.techstore.backend.application.dto.product.CategorySummaryResponse;
 import com.techstore.backend.application.dto.product.ProductDetailResponse;
 import com.techstore.backend.application.dto.product.ProductFilterRequest;
 import com.techstore.backend.application.dto.product.ProductSummaryResponse;
@@ -14,6 +15,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -196,5 +198,41 @@ public class ProductController {
     ) {
         log.debug("[ProductController] JSONB attribute filtresi. key={}, value={}", key, value);
         return ResponseEntity.ok(productService.filterByAttribute(key, value, pageable));
+    }
+
+    // =========================================================================
+    // KATEGORİ VE MARKA ENDPOINT'LERİ
+    // =========================================================================
+
+    /**
+     * GET /api/v1/products/categories
+     * Vitrinindeki aktif ürünlerin benzersiz kategori listesini ve
+     * her kategorideki ürün sayısını döndürür.
+     *
+     * Frontend kullanımı: Navbar Mega Menü, Filtre Paneli, Kategori sayfası.
+     *
+     * Örnek yanıt:
+     *   [{"name":"Laptop","productCount":230},{"name":"Akıllı Telefon","productCount":185}, ...]
+     *
+     * @return 200 OK — List<CategorySummaryResponse>
+     */
+    @GetMapping("/categories")
+    public ResponseEntity<List<CategorySummaryResponse>> getCategories() {
+        log.debug("[ProductController] Kategori listesi isteniyor.");
+        return ResponseEntity.ok(productService.getCategories());
+    }
+
+    /**
+     * GET /api/v1/products/brands
+     * Vitrinindeki aktif ürünlerin benzersiz marka listesini döndürür.
+     *
+     * Frontend kullanımı: FilterSidebar marka checkbox listesi.
+     *
+     * @return 200 OK — List<String>
+     */
+    @GetMapping("/brands")
+    public ResponseEntity<List<String>> getBrands() {
+        log.debug("[ProductController] Marka listesi isteniyor.");
+        return ResponseEntity.ok(productService.getBrands());
     }
 }
