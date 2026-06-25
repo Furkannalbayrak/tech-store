@@ -64,8 +64,15 @@ public class StringListConverter implements AttributeConverter<List<String>, Str
         try {
             return objectMapper.readValue(dbData, new TypeReference<>() {});
         } catch (Exception e) {
-            log.error("[StringListConverter] JSON array'den List'e dönüştürme hatası: {}", e.getMessage());
-            return new ArrayList<>();
+            // 2. İhtimal (DEFENSIVE PROGRAMMING): Veri bozuksa sistemi ÇÖKERTME!
+            // Gelen kirli veriyi temizleyip tek bir eleman olarak listeye ekle ve yola devam et.
+            List<String> fallbackList = new ArrayList<>();
+            String cleanedData = dbData.replace("{", "").replace("}", "").replace("\"", "").trim();
+            
+            if (!cleanedData.isEmpty()) {
+                fallbackList.add(cleanedData);
+            }
+            return fallbackList;
         }
     }
 }
