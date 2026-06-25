@@ -63,7 +63,7 @@ export default function Footer() {
     <footer className="bg-white border-t border-gray-200 mt-0">
 
       {/* ---- ÜST BÖLÜM: Sütunlar ---- */}
-      <div className="max-w-[1440px] mx-auto px-4 py-10">
+      <div className="max-w-[1340px] mx-auto px-4 py-10">
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {COLUMNS.map(col => (
             <div key={col.title}>
@@ -89,7 +89,7 @@ export default function Footer() {
 
       {/* ---- ALT BÖLÜM: Telif ve logo ---- */}
       <div className="border-t border-gray-200">
-        <div className="max-w-[1440px] mx-auto px-4 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="max-w-[1340px] mx-auto px-4 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
