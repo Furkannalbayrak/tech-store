@@ -108,7 +108,7 @@ export default function BannerSlider() {
       />
 
       {/* İÇERİK */}
-      <div className="relative z-10 h-full max-w-[1440px] mx-auto px-8 flex items-center justify-between">
+      <div className="relative z-10 h-full max-w-[1340px] mx-auto px-8 flex items-center justify-between">
 
         {/* Sol: Metin */}
         <div className="flex flex-col gap-3 max-w-lg">
