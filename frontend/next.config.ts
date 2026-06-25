@@ -12,20 +12,8 @@ const nextConfig: NextConfig = {
      */
     remotePatterns: [
       {
-        protocol: "http",
-        hostname: "localhost",
-        port: "8080",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "img.clerk.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "images.unsplash.com",
-        pathname: "/**",
+        protocol: 'https',
+        hostname: '**',
       },
     ],
   },
