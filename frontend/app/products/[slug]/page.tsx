@@ -29,6 +29,7 @@ import {
 } from "@/lib/data/placeholder-products";
 import { getProductBySlug } from "@/lib/api/product.service";
 import type { ProductDetail } from "@/lib/types/api.types";
+import ProductGallery from "@/components/products/ProductGallery";
 
 // ---------------------------------------------------------------------------
 // YARDIMCI: Fiyat formatlayıcı
@@ -62,13 +63,12 @@ function Stars({ rating }: { rating: number }) {
       {Array.from({ length: 5 }).map((_, i) => (
         <Star
           key={i}
-          className={`w-4 h-4 ${
-            i < Math.floor(rating)
-              ? "fill-amber-400 text-amber-400"
-              : i === Math.floor(rating) && rating % 1 >= 0.5
+          className={`w-4 h-4 ${i < Math.floor(rating)
+            ? "fill-amber-400 text-amber-400"
+            : i === Math.floor(rating) && rating % 1 >= 0.5
               ? "fill-amber-400/50 text-amber-400"
               : "text-zinc-700"
-          }`}
+            }`}
         />
       ))}
     </div>
@@ -139,7 +139,7 @@ export default async function ProductDetailPage({
   // Hiç bulunamazsa 404
   if (!product) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center gap-4 text-center px-4">
+      <div className="min-h-[70vh] flex flex-col items-center justify-center gap-6 bg-gray-50 text-center">
         <PackageNotFound />
       </div>
     );
@@ -159,32 +159,42 @@ export default async function ProductDetailPage({
     .filter(p => p.category === product!.category && p.id !== product!.id)
     .slice(0, 6);
 
+  // Görsel kaynağı düzeltmesi (Virgülle ayrılmış string geliyorsa böl)
+  let allImages: string[] = [];
+  if (product.imageUrls && product.imageUrls.length > 0) {
+    if (product.imageUrls.length === 1 && product.imageUrls[0].includes(',')) {
+      allImages = product.imageUrls[0].split(',');
+    } else {
+      allImages = product.imageUrls;
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-zinc-950">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-[1340px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {/* ---- BREADCRUMB ---- */}
-        <nav className="flex items-center gap-2 text-xs text-zinc-500 mb-8">
-          <Link href="/" className="hover:text-zinc-300 transition-colors">Ana Sayfa</Link>
+        <nav className="flex items-center gap-2 text-xs text-gray-500 mb-8">
+          <Link href="/" className="hover:text-blue-700 transition-colors">Ana Sayfa</Link>
           <ChevronRight className="w-3 h-3" />
-          <Link href="/products" className="hover:text-zinc-300 transition-colors">Ürünler</Link>
+          <Link href="/products" className="hover:text-blue-700 transition-colors">Ürünler</Link>
           {product.category && (
             <>
               <ChevronRight className="w-3 h-3" />
-              <Link href={`/products?category=${encodeURIComponent(product.category)}`} className="hover:text-zinc-300 transition-colors">
+              <Link href={`/products?category=${encodeURIComponent(product.category)}`} className="hover:text-blue-700 transition-colors">
                 {product.category}
               </Link>
             </>
           )}
           <ChevronRight className="w-3 h-3" />
-          <span className="text-zinc-300 line-clamp-1">{product.name}</span>
+          <span className="text-gray-900 font-medium line-clamp-1">{product.name}</span>
         </nav>
 
         {/* Placeholder uyarısı (geliştirme modu) */}
         {isPlaceholder && (
-          <div className="flex items-center gap-3 mb-6 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
-            <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
-            <p className="text-xs text-amber-400/80">
+          <div className="flex items-center gap-3 mb-6 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200">
+            <AlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0" />
+            <p className="text-xs text-amber-700">
               <span className="font-semibold">Geliştirme Modu:</span> Örnek veri gösteriliyor.
             </p>
           </div>
@@ -193,43 +203,15 @@ export default async function ProductDetailPage({
         {/* ================================================================
             ANA ÜRÜN BÖLGESİ: Görsel Sol | Bilgi Sağ
             ================================================================ */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_480px] gap-10 mb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-[500px_1fr] gap-10 lg:gap-16 mb-16">
 
           {/* ---- SOL: GÖRSEL GALERİSİ ---- */}
-          <div className="flex flex-col gap-4">
-            {/* Ana görsel */}
-            <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-800">
-              {product.imageUrls[0] ? (
-                <Image
-                  src={product.imageUrls[0]}
-                  alt={product.name}
-                  fill
-                  priority
-                  sizes="(max-width:1024px) 100vw, 55vw"
-                  className="object-cover"
-                />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center text-zinc-700 text-6xl">📦</div>
-              )}
-              {/* İndirim rozeti */}
-              {hasDiscount && (
-                <div className="absolute top-4 left-4 px-3 py-1.5 rounded-xl text-sm font-extrabold text-white bg-red-600 shadow-lg">
-                  -%{discountPct} İNDİRİM
-                </div>
-              )}
-            </div>
-
-            {/* Küçük görseller */}
-            {product.imageUrls.length > 1 && (
-              <div className="grid grid-cols-4 gap-3">
-                {product.imageUrls.slice(0, 4).map((url, i) => (
-                  <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800 hover:border-blue-500 cursor-pointer transition-colors">
-                    {url && <Image src={url} alt={`${product.name} ${i + 1}`} fill className="object-cover" />}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <ProductGallery
+            images={allImages}
+            productName={product.name}
+            hasDiscount={hasDiscount}
+            discountPct={discountPct}
+          />
 
           {/* ---- SAĞ: SATIŞ BİLGİ PANELI ---- */}
           <div className="flex flex-col gap-5">
@@ -237,35 +219,35 @@ export default async function ProductDetailPage({
             {/* Marka + Puan */}
             <div className="flex items-center justify-between flex-wrap gap-2">
               {product.brand && (
-                <Link href={`/products?brand=${product.brand}`} className="text-sm font-bold text-blue-400 hover:text-blue-300 transition-colors uppercase tracking-wider">
+                <Link href={`/products?brand=${product.brand}`} className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors uppercase tracking-wider">
                   {product.brand}
                 </Link>
               )}
               <div className="flex items-center gap-2">
                 <Stars rating={meta.rating} />
-                <span className="text-sm text-zinc-400">
+                <span className="text-sm text-gray-500">
                   {meta.rating} ({meta.reviewCount.toLocaleString("tr-TR")} değerlendirme)
                 </span>
               </div>
             </div>
 
             {/* Ürün adı */}
-            <h1 className="text-2xl sm:text-3xl font-bold text-white leading-tight">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">
               {product.name}
             </h1>
 
             {/* Kısa açıklama */}
             {product.shortDescription && (
-              <p className="text-sm text-zinc-400 leading-relaxed">{product.shortDescription}</p>
+              <p className="text-[13px] text-gray-600 leading-relaxed">{product.shortDescription}</p>
             )}
 
             {/* ---- FİYAT BLOKU ---- */}
-            <div className="flex flex-col gap-1 p-4 rounded-2xl bg-zinc-900 border border-zinc-800">
+            <div className="flex flex-col gap-1 mt-2">
               <div className="flex items-end gap-3 flex-wrap">
-                <span className="text-4xl font-extrabold text-white">{fmt(displayPrice)}</span>
+                <span className="text-4xl font-extrabold text-blue-900">{fmt(displayPrice)}</span>
                 {hasDiscount && (
                   <>
-                    <span className="text-xl text-zinc-600 line-through">{fmt(product.price)}</span>
+                    <span className="text-lg text-gray-400 line-through">{fmt(product.price)}</span>
                     <span className="px-2.5 py-1 rounded-lg text-sm font-bold text-white bg-red-600">
                       ₺{(product.price - displayPrice).toLocaleString("tr-TR")} Tasarruf
                     </span>
@@ -273,24 +255,24 @@ export default async function ProductDetailPage({
                 )}
               </div>
               {hasDiscount && (
-                <p className="text-xs text-emerald-400">
+                <p className="text-xs text-emerald-600 mt-2 font-medium">
                   🏷️ Bu ürünü bugün alarak %{discountPct} indirimden yararlanıyorsunuz!
                 </p>
               )}
             </div>
 
             {/* ---- TESLİMAT & STOK BİLGİSİ ---- */}
-            <div className="flex flex-col gap-2.5 p-4 rounded-2xl bg-zinc-900 border border-zinc-800">
+            <div className="flex flex-col gap-2.5 p-4 rounded-2xl bg-white border border-gray-200 shadow-sm">
 
               {/* Teslimat */}
               {!isOos && (
                 <div className="flex items-center gap-3">
-                  <Truck className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                  <Truck className="w-5 h-5 text-emerald-500 flex-shrink-0" />
                   <div>
-                    <span className="text-sm font-bold text-emerald-400">
+                    <span className="text-sm font-bold text-emerald-600">
                       {meta.deliveryDays} Kargoya Verilir
                     </span>
-                    <p className="text-xs text-zinc-500">Ücretsiz kargo • Kapıda ödeme seçeneği</p>
+                    <p className="text-xs text-gray-500">Ücretsiz kargo • Kapıda ödeme seçeneği</p>
                   </div>
                 </div>
               )}
@@ -299,19 +281,19 @@ export default async function ProductDetailPage({
               {isOos ? (
                 <div className="flex items-center gap-3">
                   <div className="w-2.5 h-2.5 rounded-full bg-red-500 flex-shrink-0" />
-                  <span className="text-sm font-semibold text-red-400">Stok Tükendi</span>
+                  <span className="text-sm font-semibold text-red-600">Stok Tükendi</span>
                 </div>
               ) : isLowStock ? (
                 <div className="flex items-center gap-3 animate-pulse">
                   <div className="w-2.5 h-2.5 rounded-full bg-amber-500 flex-shrink-0" />
-                  <span className="text-sm font-bold text-amber-400">
+                  <span className="text-sm font-bold text-amber-600">
                     🔥 Son {product.stockQuantity} ürün kaldı!
                   </span>
                 </div>
               ) : (
                 <div className="flex items-center gap-3">
                   <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 flex-shrink-0" />
-                  <span className="text-sm font-semibold text-emerald-400">
+                  <span className="text-sm font-semibold text-emerald-600">
                     Stokta Var ({product.stockQuantity} adet)
                   </span>
                 </div>
@@ -319,9 +301,9 @@ export default async function ProductDetailPage({
 
               {/* Aciliyet mesajı */}
               {!isOos && isLowStock && (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20">
-                  <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                  <span className="text-xs text-amber-400 font-medium">
+                <div className="flex items-center gap-2 px-3 py-2 mt-1 rounded-xl bg-amber-50 border border-amber-200">
+                  <Clock className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                  <span className="text-xs text-amber-700 font-medium">
                     Bu ürün 24 saatte 12 kez sepete eklendi. Kaçırmayın!
                   </span>
                 </div>
@@ -329,46 +311,46 @@ export default async function ProductDetailPage({
             </div>
 
             {/* ---- CTA BUTONLARI ---- */}
-            <div className="flex gap-3">
+            <div className="flex gap-3 mt-2">
               <button
                 disabled={isOos}
-                className="flex-1 flex items-center justify-center gap-2.5
-                           py-4 rounded-2xl text-base font-bold
-                           bg-zinc-800 border border-zinc-700 text-white
-                           hover:bg-zinc-700 hover:border-zinc-500
+                className="flex-1 flex items-center justify-center gap-2
+                           py-3 rounded-xl text-sm font-bold
+                           bg-white border-2 border-blue-600 text-blue-600
+                           hover:bg-blue-50
                            disabled:opacity-40 disabled:cursor-not-allowed
                            transition-all duration-200 active:scale-[0.98]"
               >
-                <ShoppingCart className="w-5 h-5" />
+                <ShoppingCart className="w-4 h-4" />
                 Sepete Ekle
               </button>
               <button
                 disabled={isOos}
-                className="flex-1 flex items-center justify-center gap-2.5
-                           py-4 rounded-2xl text-base font-extrabold
-                           bg-gradient-to-r from-blue-500 to-violet-600
-                           hover:from-blue-400 hover:to-violet-500
-                           text-white shadow-xl shadow-blue-500/30
+                className="flex-1 flex items-center justify-center gap-2
+                           py-3 rounded-xl text-sm font-extrabold
+                           bg-gradient-to-r from-blue-600 to-indigo-600
+                           hover:from-blue-700 hover:to-indigo-700
+                           text-white shadow-lg shadow-blue-500/30
                            hover:shadow-blue-500/50 hover:scale-[1.02]
                            disabled:opacity-40 disabled:cursor-not-allowed
                            transition-all duration-200 active:scale-[0.98]"
               >
-                <Zap className="w-5 h-5" />
+                <Zap className="w-4 h-4" />
                 Hemen Satın Al
               </button>
             </div>
 
             {/* ---- GÜVEN ROZETLERİ ---- */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-3 mt-2">
               {[
-                { Icon: Shield,      text: "Güvenli Ödeme",   sub: "SSL Şifreli" },
-                { Icon: RefreshCcw,  text: "Kolay İade",      sub: "30 Gün İçinde" },
-                { Icon: Check,       text: "Orijinal Ürün",   sub: "Resmi Yetkili" },
+                { Icon: Shield, text: "Güvenli Ödeme", sub: "SSL Şifreli" },
+                { Icon: RefreshCcw, text: "Kolay İade", sub: "30 Gün İçinde" },
+                { Icon: Check, text: "Orijinal Ürün", sub: "Resmi Yetkili" },
               ].map(({ Icon, text, sub }) => (
-                <div key={text} className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-center">
-                  <Icon className="w-5 h-5 text-blue-400" />
-                  <span className="text-[11px] font-semibold text-zinc-300">{text}</span>
-                  <span className="text-[10px] text-zinc-600">{sub}</span>
+                <div key={text} className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-gray-50 border border-gray-200 text-center">
+                  <Icon className="w-5 h-5 text-blue-600" />
+                  <span className="text-[11px] font-semibold text-gray-700">{text}</span>
+                  <span className="text-[10px] text-gray-500">{sub}</span>
                 </div>
               ))}
             </div>
@@ -379,16 +361,16 @@ export default async function ProductDetailPage({
             TEKNİK ÖZELLİKLER
             ================================================================ */}
         {product.attributes && Object.keys(product.attributes).length > 0 && (
-          <section className="mb-16">
-            <h2 className="text-xl font-bold text-white mb-5">Teknik Özellikler</h2>
-            <div className="rounded-2xl border border-zinc-800 overflow-hidden">
+          <section className="mb-12">
+            <h2 className="text-lg font-bold text-gray-900 mb-4">Teknik Özellikler</h2>
+            <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm">
               {Object.entries(product.attributes).map(([key, val], i) => (
                 <div
                   key={key}
-                  className={`flex items-start gap-4 px-5 py-4 ${i % 2 === 0 ? "bg-zinc-900" : "bg-zinc-900/50"}`}
+                  className={`flex items-start gap-4 px-5 py-4 ${i % 2 === 0 ? "bg-white" : "bg-gray-50"}`}
                 >
-                  <span className="text-sm font-semibold text-zinc-400 w-40 flex-shrink-0">{key}</span>
-                  <span className="text-sm text-zinc-200">{String(val)}</span>
+                  <span className="text-sm font-semibold text-gray-600 w-40 flex-shrink-0">{key}</span>
+                  <span className="text-sm text-gray-900">{String(val)}</span>
                 </div>
               ))}
             </div>
@@ -397,10 +379,10 @@ export default async function ProductDetailPage({
 
         {/* Ürün açıklaması */}
         {product.description && (
-          <section className="mb-16">
-            <h2 className="text-xl font-bold text-white mb-5">Ürün Açıklaması</h2>
-            <div className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800">
-              <p className="text-sm text-zinc-400 leading-loose">{product.description}</p>
+          <section className="mb-12">
+            <h2 className="text-lg font-bold text-gray-900 mb-4">Ürün Açıklaması</h2>
+            <div className="p-6 rounded-2xl bg-white border border-gray-200 shadow-sm">
+              <p className="text-sm text-gray-700 leading-loose whitespace-pre-wrap">{product.description}</p>
             </div>
           </section>
         )}
@@ -409,13 +391,13 @@ export default async function ProductDetailPage({
             BENZER ÜRÜNLER
             ================================================================ */}
         {related.length > 0 && (
-          <section>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-white">Benzer Ürünler</h2>
+          <section className="mb-12">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-gray-900">Benzer Ürünler</h2>
               {product.category && (
                 <Link
                   href={`/products?category=${encodeURIComponent(product.category)}`}
-                  className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                  className="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors"
                 >
                   Tümünü Gör →
                 </Link>
@@ -440,17 +422,18 @@ export default async function ProductDetailPage({
 function PackageNotFound() {
   return (
     <>
-      <span className="text-6xl">📦</span>
+      <span className="text-6xl text-gray-300">📦</span>
       <div>
-        <h1 className="text-2xl font-bold text-white">Ürün Bulunamadı</h1>
-        <p className="text-zinc-500 mt-2">Aradığınız ürün mevcut değil veya kaldırılmış olabilir.</p>
+        <h1 className="text-2xl font-bold text-gray-900">Ürün Bulunamadı</h1>
+        <p className="text-gray-500 mt-2">Aradığınız ürün mevcut değil veya kaldırılmış olabilir.</p>
       </div>
       <Link
         href="/products"
         className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold
-                   bg-blue-500 text-white hover:bg-blue-400 transition-colors"
+                   bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-md"
       >
-        <ArrowLeft className="w-4 h-4" /> Ürünlere Dön
+        <ArrowLeft className="w-4 h-4" />
+        Ürünlere Dön
       </Link>
     </>
   );
