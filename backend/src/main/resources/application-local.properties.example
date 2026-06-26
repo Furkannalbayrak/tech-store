@@ -1,0 +1,18 @@
+# =============================================================================
+# application-local.properties.example
+# Bu dosya git'e gider — sadece ÖRNEK / ŞABLON olarak.
+# Gerçek değerleri almak için proje sahibine sorun.
+# Kopyalayıp "application-local.properties" olarak kaydedin ve doldurun.
+# =============================================================================
+
+# Supabase PostgreSQL bağlantısı
+DB_URL=jdbc:postgresql://<supabase-host>:6543/postgres?prepareThreshold=0
+DB_USERNAME=postgres.<proje-id>
+DB_PASSWORD=<supabase-db-sifresi>
+
+# Clerk JWT doğrulama URL'leri (Clerk Dashboard > API Keys'den alınır)
+CLERK_JWKS_URI=https://<clerk-domain>.clerk.accounts.dev/.well-known/jwks.json
+CLERK_ISSUER_URI=https://<clerk-domain>.clerk.accounts.dev
+
+# Clerk Webhook imzalama anahtarı (Clerk Dashboard > Webhooks > Signing Secret)
+CLERK_WEBHOOK_SECRET=whsec_<buraya-webhook-secreti-yaz>
