@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Gizli / Yerel Konfigürasyon ###
+# Gerçek şifreler ve secret'lar burada — asla git'e gönderilmez!
+src/main/resources/application-local.properties
