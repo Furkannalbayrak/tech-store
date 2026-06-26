@@ -22,11 +22,7 @@ import {
 } from "lucide-react";
 import type { CategoryInfo } from "@/lib/types/api.types";
 import { findGroup, MEGA_GROUPS } from "./Navbar";
-
-/* ============================================================
-   ARAMA KATEGORİLERİ (dropdown içi)
-   ============================================================ */
-const SEARCH_CATS = ["Tüm Kategoriler", ...Object.keys(MEGA_GROUPS)];
+import { useCartStore } from "@/lib/context/CartContext";
 
 /* ============================================================
    GROUPLANMIş KATEGORİ YAPISI
@@ -120,19 +116,26 @@ interface NavbarClientProps {
 export default function NavbarClient({ categories }: NavbarClientProps) {
   const { isSignedIn } = useAuth();
   const router = useRouter();
+  const cartCount = useCartStore(s => s.totalCount());
 
-  const [searchQuery, setSearchQuery]       = useState("");
-  const [searchCategory, setSearchCategory] = useState("Tüm Kategoriler");
-  const [isMobileOpen, setIsMobileOpen]     = useState(false);
-  const [isCatDropOpen, setIsCatDropOpen]   = useState(false);
-  const [openGroup, setOpenGroup]           = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
 
   const navRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   /* Dışarı tıklayınca mega menüyü kapat */
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (navRef.current && !navRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      const isOutsideNav = navRef.current && !navRef.current.contains(target);
+      const isOutsideMobile = !mobileMenuRef.current || !mobileMenuRef.current.contains(target);
+
+      if (isOutsideNav && isOutsideMobile) {
         setOpenGroup(null);
       }
     }
@@ -147,7 +150,6 @@ export default function NavbarClient({ categories }: NavbarClientProps) {
     if (!searchQuery.trim()) return;
     const p = new URLSearchParams();
     p.set("keyword", searchQuery.trim());
-    if (searchCategory !== "Tüm Kategoriler") p.set("category", searchCategory);
     router.push(`/products?${p.toString()}`);
     setSearchQuery("");
   };
@@ -162,7 +164,7 @@ export default function NavbarClient({ categories }: NavbarClientProps) {
             KATMAN 1: Logo | Arama | Kullanıcı
             ============================================================ */}
         <div className="border-b border-gray-200">
-          <div className="max-w-[1340px] mx-auto px-4 h-16 flex items-center gap-4">
+          <div className="max-w-[1340px] mx-auto px-4 h-16 flex items-center justify-between gap-4">
 
             {/* LOGO */}
             <Link href="/" className="flex items-center gap-2 flex-shrink-0">
@@ -179,46 +181,14 @@ export default function NavbarClient({ categories }: NavbarClientProps) {
               </div>
             </Link>
 
-            {/* BÜYÜK ARAMA ÇUBUĞU */}
+            {/* BÜYÜK ARAMA ÇUBUĞU (Sadece masaüstü) */}
             <form
               onSubmit={handleSearch}
-              className="flex-1 flex items-stretch h-10 rounded-md overflow-hidden
+              className="hidden md:flex flex-1 items-stretch h-10 rounded-md overflow-hidden
                          border border-gray-300 hover:border-blue-500
                          focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-100
                          transition-all"
             >
-              {/* Kategori seçici */}
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setIsCatDropOpen(o => !o)}
-                  className="h-full flex items-center gap-1.5 px-3 bg-gray-100 border-r border-gray-300
-                             text-xs font-medium text-gray-600 hover:bg-gray-200 transition-colors whitespace-nowrap"
-                >
-                  <span className="hidden sm:inline max-w-[110px] truncate">{searchCategory}</span>
-                  <ChevronDown className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
-                </button>
-                {isCatDropOpen && (
-                  <>
-                    <div className="fixed inset-0 z-40" onClick={() => setIsCatDropOpen(false)} />
-                    <div className="absolute top-full left-0 z-50 mt-1 w-52 bg-white border border-gray-200 rounded-md shadow-xl overflow-y-auto max-h-72">
-                      {SEARCH_CATS.map(cat => (
-                        <button
-                          key={cat}
-                          type="button"
-                          onClick={() => { setSearchCategory(cat); setIsCatDropOpen(false); }}
-                          className={`w-full text-left px-4 py-2.5 text-sm hover:bg-blue-50 hover:text-blue-700 transition-colors ${
-                            searchCategory === cat ? "bg-blue-50 text-blue-700 font-medium" : "text-gray-700"
-                          }`}
-                        >
-                          {cat}
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-
               {/* Metin girişi */}
               <input
                 id="navbar-search"
@@ -271,9 +241,11 @@ export default function NavbarClient({ categories }: NavbarClientProps) {
               >
                 <div className="relative">
                   <ShoppingCart className="w-5 h-5 text-gray-600 group-hover:text-blue-700" />
-                  <span className="absolute -top-2 -right-2 flex items-center justify-center w-4 h-4 rounded-full bg-orange-500 text-[9px] font-bold text-white">
-                    0
-                  </span>
+                  {mounted && cartCount > 0 && (
+                    <span className="absolute -top-2 -right-2 flex items-center justify-center min-w-[16px] h-4 px-0.5 rounded-full bg-orange-500 text-[9px] font-bold text-white">
+                      {cartCount > 99 ? "99+" : cartCount}
+                    </span>
+                  )}
                 </div>
                 <span className="text-[11px] text-gray-600 group-hover:text-blue-700 font-medium hidden sm:block">
                   Sepetim
@@ -321,9 +293,9 @@ export default function NavbarClient({ categories }: NavbarClientProps) {
                     className={`px-4 h-full flex items-center gap-1 text-[13px] font-medium
                                border-b-2 border-transparent transition-all duration-150 whitespace-nowrap
                                ${openGroup === groupName
-                                 ? "bg-white text-blue-700 border-blue-700"
-                                 : "text-gray-700 hover:bg-white hover:text-blue-700 hover:border-blue-700"
-                               }`}
+                        ? "bg-white text-blue-700 border-blue-700"
+                        : "text-gray-700 hover:bg-white hover:text-blue-700 hover:border-blue-700"
+                      }`}
                   >
                     {groupName}
                     <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-150 ${openGroup === groupName ? "rotate-180" : ""}`} />
@@ -362,8 +334,35 @@ export default function NavbarClient({ categories }: NavbarClientProps) {
       {isMobileOpen && (
         <>
           <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setIsMobileOpen(false)} />
-          <div className="fixed top-16 left-0 right-0 z-40 bg-white border-b border-gray-200 shadow-lg max-h-[70vh] overflow-y-auto">
+          <div ref={mobileMenuRef} className="fixed top-16 left-0 right-0 z-40 bg-white border-b border-gray-200 shadow-lg max-h-[70vh] overflow-y-auto">
             <nav className="flex flex-col py-2">
+
+              <div className="px-6 py-4 border-b border-gray-100 lg:hidden">
+                <form
+                  onSubmit={(e) => {
+                    handleSearch(e);
+                    setIsMobileOpen(false);
+                  }}
+                  className="flex items-stretch h-10 rounded-md overflow-hidden
+                             border border-gray-300 hover:border-blue-500
+                             focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-100
+                             transition-all"
+                >
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    placeholder="Ürün, marka veya kategori ara..."
+                    className="flex-1 px-4 text-sm text-gray-800 placeholder-gray-400 bg-white focus:outline-none"
+                  />
+                  <button
+                    type="submit"
+                    className="px-4 bg-blue-700 hover:bg-blue-800 text-white transition-colors flex-shrink-0 flex items-center justify-center"
+                  >
+                    <Search className="w-4 h-4" />
+                  </button>
+                </form>
+              </div>
 
               <Link href="/products?onlyDiscount=1" onClick={() => setIsMobileOpen(false)}
                 className="px-6 py-3 text-sm font-bold text-red-600 hover:bg-red-50 border-b border-gray-100">
@@ -374,7 +373,11 @@ export default function NavbarClient({ categories }: NavbarClientProps) {
               {Object.entries(groups).map(([groupName, items]) => (
                 <div key={groupName} className="border-b border-gray-100">
                   <button
-                    onClick={() => toggleGroup(groupName)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setOpenGroup(openGroup === groupName ? null : groupName);
+                    }}
                     className="w-full flex items-center justify-between px-6 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-50"
                   >
                     {groupName}
