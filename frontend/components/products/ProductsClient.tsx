@@ -116,14 +116,19 @@ function applyClientFilters(
 function ActiveFilterChips({ params }: { params: URLSearchParams }) {
   const router = useRouter();
 
-  const remove = useCallback((key: string, val?: string) => {
+  const remove = useCallback((keyOrKeys: string | string[], val?: string) => {
     const p = new URLSearchParams(params.toString());
-    if (val) {
-      const list = p.get(key)?.split(",").filter(b => b !== val) ?? [];
-      list.length ? p.set(key, list.join(",")) : p.delete(key);
-    } else {
-      p.delete(key);
-    }
+    const keys = Array.isArray(keyOrKeys) ? keyOrKeys : [keyOrKeys];
+    
+    keys.forEach(k => {
+      if (val && !Array.isArray(keyOrKeys)) {
+        const list = p.get(k)?.split(",").filter(b => b !== val) ?? [];
+        list.length ? p.set(k, list.join(",")) : p.delete(k);
+      } else {
+        p.delete(k);
+      }
+    });
+    
     p.delete("page");
     router.push(`?${p.toString()}`);
   }, [params, router]);
@@ -137,7 +142,7 @@ function ActiveFilterChips({ params }: { params: URLSearchParams }) {
   const minP = params.get("minPrice"), maxP = params.get("maxPrice");
   if (minP || maxP) chips.push({
     label: `₺${Number(minP || 0).toLocaleString("tr-TR")} – ₺${maxP ? Number(maxP).toLocaleString("tr-TR") : "∞"}`,
-    onRemove: () => { remove("minPrice"); remove("maxPrice"); },
+    onRemove: () => remove(["minPrice", "maxPrice"]),
   });
 
   const mr = params.get("minRating");
@@ -312,7 +317,7 @@ export default function ProductsClient({
     <div className="max-w-[1340px] mx-auto px-4 py-6">
 
       {/* ---- BREADCRUMB ---- */}
-      <nav className="flex items-center gap-2 text-xs text-gray-500 mb-4">
+      <nav className="hidden md:flex items-center gap-2 text-xs text-gray-500 mb-4">
         <Link href="/" className="hover:text-blue-700 flex items-center gap-1">
           <Home className="w-3 h-3" /> Ana Sayfa
         </Link>

@@ -247,22 +247,35 @@ export default function DynamicFilterSidebar({
       <Accordion title="Fiyat Aralığı (₺)">
         <div className="flex gap-2 items-center">
           <input
+            id="minPriceInput"
             type="number"
             placeholder="Min"
             defaultValue={minPrice ?? ""}
-            onBlur={e => updateParams({ minPrice: e.target.value || null })}
             className="w-full px-3 py-2 rounded-lg text-xs bg-gray-50 border border-gray-200
                        text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500"
           />
           <span className="text-gray-400 flex-shrink-0 text-sm">—</span>
           <input
+            id="maxPriceInput"
             type="number"
             placeholder="Max"
             defaultValue={maxPrice ?? ""}
-            onBlur={e => updateParams({ maxPrice: e.target.value || null })}
             className="w-full px-3 py-2 rounded-lg text-xs bg-gray-50 border border-gray-200
                        text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500"
           />
+          <button
+            onClick={() => {
+              const minVal = (document.getElementById("minPriceInput") as HTMLInputElement)?.value;
+              const maxVal = (document.getElementById("maxPriceInput") as HTMLInputElement)?.value;
+              updateParams({ minPrice: minVal || null, maxPrice: maxVal || null });
+            }}
+            className="flex-shrink-0 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition-colors"
+            title="Uygula"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         </div>
 
         {/* Hızlı aralık butonları */}
