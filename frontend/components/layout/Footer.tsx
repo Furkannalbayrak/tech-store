@@ -16,41 +16,41 @@ const COLUMNS = [
   {
     title: "Kurumsal",
     links: [
-      { label: "Hakkımızda",        href: "/about" },
-      { label: "Kariyer",           href: "/careers" },
-      { label: "Basın",             href: "/press" },
-      { label: "Blog",              href: "/blog" },
-      { label: "İletişim",          href: "/contact" },
+      { label: "Hakkımızda", href: "/about" },
+      { label: "Kariyer", href: "/careers" },
+      { label: "Basın", href: "/press" },
+      { label: "Blog", href: "/blog" },
+      { label: "İletişim", href: "/contact" },
     ],
   },
   {
     title: "Müşteri Hizmetleri",
     links: [
-      { label: "Yardım Merkezi",    href: "/help" },
-      { label: "Siparişlerim",      href: "/orders" },
-      { label: "İade & Değişim",    href: "/returns" },
-      { label: "Kargo Takibi",      href: "/tracking" },
-      { label: "Fatura & Belge",    href: "/invoice" },
+      { label: "Yardım Merkezi", href: "/help" },
+      { label: "Siparişlerim", href: "/orders" },
+      { label: "İade & Değişim", href: "/returns" },
+      { label: "Kargo Takibi", href: "/tracking" },
+      { label: "Fatura & Belge", href: "/invoice" },
     ],
   },
   {
     title: "Alışveriş",
     links: [
-      { label: "Tüm Ürünler",       href: "/products" },
-      { label: "Kampanyalar",       href: "/products?onlyDiscount=1" },
-      { label: "Markalar",          href: "/brands" },
-      { label: "Çok Satanlar",      href: "/products" },
-      { label: "Yeni Gelenler",     href: "/products?sort=newest" },
+      { label: "Tüm Ürünler", href: "/products" },
+      { label: "Kampanyalar", href: "/products?onlyDiscount=1" },
+      { label: "Markalar", href: "/brands" },
+      { label: "Çok Satanlar", href: "/products" },
+      { label: "Yeni Gelenler", href: "/products?sort=newest" },
     ],
   },
   {
     title: "Yasal",
     links: [
-      { label: "Gizlilik Politikası",   href: "/privacy" },
-      { label: "Kullanım Koşulları",    href: "/terms" },
-      { label: "KVKK Aydınlatma",       href: "/kvkk" },
-      { label: "Çerez Politikası",      href: "/cookies" },
-      { label: "Mesafeli Satış",        href: "/distance-selling" },
+      { label: "Gizlilik Politikası", href: "/privacy" },
+      { label: "Kullanım Koşulları", href: "/terms" },
+      { label: "KVKK Aydınlatma", href: "/kvkk" },
+      { label: "Çerez Politikası", href: "/cookies" },
+      { label: "Mesafeli Satış", href: "/distance-selling" },
     ],
   },
 ];
@@ -63,7 +63,7 @@ export default function Footer() {
     <footer className="bg-white border-t border-gray-200 mt-0">
 
       {/* ---- ÜST BÖLÜM: Sütunlar ---- */}
-      <div className="max-w-[1340px] mx-auto px-4 py-10">
+      <div className="max-w-[1340px] mx-auto px-10 py-10">
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {COLUMNS.map(col => (
             <div key={col.title}>
