@@ -132,20 +132,6 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           </div>
         )}
 
-        {/* İndirim rozeti */}
-        {hasDiscount && discountPct > 0 && (
-          <div className="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">
-            -%{discountPct}
-          </div>
-        )}
-
-        {/* Yeni ürün rozeti */}
-        {!hasDiscount && product.isFeatured && (
-          <div className="absolute top-2 left-2 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">
-            YENİ
-          </div>
-        )}
-
         {/* Stok tükendi overlay */}
         {isOos && (
           <div className="absolute inset-0 bg-white/75 flex items-center justify-center">
