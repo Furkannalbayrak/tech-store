@@ -18,8 +18,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import {
-  Star, ShoppingCart, Zap, Truck, Shield, RefreshCcw,
-  ChevronRight, Check, AlertCircle, ArrowLeft, Clock
+  Star, Truck, Shield, RefreshCcw, ShieldCheck,
+  ChevronRight, AlertCircle, ArrowLeft, Clock
 } from "lucide-react";
 import ProductCard from "@/components/home/ProductCard";
 import {
@@ -30,6 +30,7 @@ import {
 import { getProductBySlug } from "@/lib/api/product.service";
 import type { ProductDetail } from "@/lib/types/api.types";
 import ProductGallery from "@/components/products/ProductGallery";
+import AddToCartButtons from "@/components/products/AddToCartButtons";
 
 // ---------------------------------------------------------------------------
 // YARDIMCI: Fiyat formatlayıcı
@@ -75,45 +76,7 @@ function Stars({ rating }: { rating: number }) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// SEPETE EKLE / HEMEN AL — Client wrapper
-// ---------------------------------------------------------------------------
-function AddToCartButtons({ product }: { product: ProductDetail }) {
-  "use client";
-  const { stockQuantity } = product;
-  const isOos = stockQuantity === 0;
-
-  return (
-    <div className="flex gap-3">
-      <button
-        disabled={isOos}
-        className="flex-1 flex items-center justify-center gap-2.5
-                   py-4 rounded-2xl text-base font-bold
-                   bg-zinc-800 border border-zinc-700 text-white
-                   hover:bg-zinc-700 hover:border-zinc-500
-                   disabled:opacity-40 disabled:cursor-not-allowed
-                   transition-all duration-200 active:scale-[0.98]"
-      >
-        <ShoppingCart className="w-5 h-5" />
-        Sepete Ekle
-      </button>
-      <button
-        disabled={isOos}
-        className="flex-1 flex items-center justify-center gap-2.5
-                   py-4 rounded-2xl text-base font-extrabold
-                   bg-gradient-to-r from-blue-500 to-violet-600
-                   hover:from-blue-400 hover:to-violet-500
-                   text-white shadow-xl shadow-blue-500/30
-                   hover:shadow-blue-500/50 hover:scale-[1.02]
-                   disabled:opacity-40 disabled:cursor-not-allowed
-                   transition-all duration-200 active:scale-[0.98]"
-      >
-        <Zap className="w-5 h-5" />
-        Hemen Satın Al
-      </button>
-    </div>
-  );
-}
+// AddToCartButtons artık ayrı client component olarak @/components/products/AddToCartButtons.tsx'te
 
 // ---------------------------------------------------------------------------
 // ANA SAYFA BİLEŞENİ
@@ -174,7 +137,7 @@ export default async function ProductDetailPage({
       <div className="max-w-[1340px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {/* ---- BREADCRUMB ---- */}
-        <nav className="flex items-center gap-2 text-xs text-gray-500 mb-8">
+        <nav className="hidden md:flex items-center gap-2 text-xs text-gray-500 mb-8">
           <Link href="/" className="hover:text-blue-700 transition-colors">Ana Sayfa</Link>
           <ChevronRight className="w-3 h-3" />
           <Link href="/products" className="hover:text-blue-700 transition-colors">Ürünler</Link>
@@ -219,43 +182,43 @@ export default async function ProductDetailPage({
             {/* Marka + Puan */}
             <div className="flex items-center justify-between flex-wrap gap-2">
               {product.brand && (
-                <Link href={`/products?brand=${product.brand}`} className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors uppercase tracking-wider">
+                <Link href={`/products?brand=${product.brand}`} className="text-xs sm:text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors uppercase tracking-wider">
                   {product.brand}
                 </Link>
               )}
               <div className="flex items-center gap-2">
                 <Stars rating={meta.rating} />
-                <span className="text-sm text-gray-500">
+                <span className="text-xs sm:text-sm text-gray-500">
                   {meta.rating} ({meta.reviewCount.toLocaleString("tr-TR")} değerlendirme)
                 </span>
               </div>
             </div>
 
             {/* Ürün adı */}
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">
+            <h1 className="text-lg sm:text-2xl font-bold text-gray-900 leading-tight">
               {product.name}
             </h1>
 
             {/* Kısa açıklama */}
             {product.shortDescription && (
-              <p className="text-[13px] text-gray-600 leading-relaxed">{product.shortDescription}</p>
+              <p className="text-xs sm:text-[13px] text-gray-600 leading-relaxed">{product.shortDescription}</p>
             )}
 
             {/* ---- FİYAT BLOKU ---- */}
             <div className="flex flex-col gap-1 mt-2">
               <div className="flex items-end gap-3 flex-wrap">
-                <span className="text-4xl font-extrabold text-blue-900">{fmt(displayPrice)}</span>
+                <span className="text-3xl sm:text-4xl font-extrabold text-blue-900">{fmt(displayPrice)}</span>
                 {hasDiscount && (
                   <>
-                    <span className="text-lg text-gray-400 line-through">{fmt(product.price)}</span>
-                    <span className="px-2.5 py-1 rounded-lg text-sm font-bold text-white bg-red-600">
+                    <span className="text-base sm:text-lg text-gray-400 line-through">{fmt(product.price)}</span>
+                    <span className="px-2.5 py-1 rounded-lg text-xs sm:text-sm font-bold text-white bg-red-600">
                       ₺{(product.price - displayPrice).toLocaleString("tr-TR")} Tasarruf
                     </span>
                   </>
                 )}
               </div>
               {hasDiscount && (
-                <p className="text-xs text-emerald-600 mt-2 font-medium">
+                <p className="text-[11px] sm:text-xs text-emerald-600 mt-2 font-medium">
                   🏷️ Bu ürünü bugün alarak %{discountPct} indirimden yararlanıyorsunuz!
                 </p>
               )}
@@ -311,41 +274,14 @@ export default async function ProductDetailPage({
             </div>
 
             {/* ---- CTA BUTONLARI ---- */}
-            <div className="flex gap-3 mt-2">
-              <button
-                disabled={isOos}
-                className="flex-1 flex items-center justify-center gap-2
-                           py-3 rounded-xl text-sm font-bold
-                           bg-white border-2 border-blue-600 text-blue-600
-                           hover:bg-blue-50
-                           disabled:opacity-40 disabled:cursor-not-allowed
-                           transition-all duration-200 active:scale-[0.98]"
-              >
-                <ShoppingCart className="w-4 h-4" />
-                Sepete Ekle
-              </button>
-              <button
-                disabled={isOos}
-                className="flex-1 flex items-center justify-center gap-2
-                           py-3 rounded-xl text-sm font-extrabold
-                           bg-gradient-to-r from-blue-600 to-indigo-600
-                           hover:from-blue-700 hover:to-indigo-700
-                           text-white shadow-lg shadow-blue-500/30
-                           hover:shadow-blue-500/50 hover:scale-[1.02]
-                           disabled:opacity-40 disabled:cursor-not-allowed
-                           transition-all duration-200 active:scale-[0.98]"
-              >
-                <Zap className="w-4 h-4" />
-                Hemen Satın Al
-              </button>
-            </div>
+            <AddToCartButtons product={product} />
 
             {/* ---- GÜVEN ROZETLERİ ---- */}
             <div className="grid grid-cols-3 gap-3 mt-2">
               {[
                 { Icon: Shield, text: "Güvenli Ödeme", sub: "SSL Şifreli" },
                 { Icon: RefreshCcw, text: "Kolay İade", sub: "30 Gün İçinde" },
-                { Icon: Check, text: "Orijinal Ürün", sub: "Resmi Yetkili" },
+                { Icon: ShieldCheck, text: "Orijinal Ürün", sub: "Resmi Yetkili" },
               ].map(({ Icon, text, sub }) => (
                 <div key={text} className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-gray-50 border border-gray-200 text-center">
                   <Icon className="w-5 h-5 text-blue-600" />
@@ -362,7 +298,7 @@ export default async function ProductDetailPage({
             ================================================================ */}
         {product.attributes && Object.keys(product.attributes).length > 0 && (
           <section className="mb-12">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Teknik Özellikler</h2>
+            <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-4">Teknik Özellikler</h2>
             <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm">
               {Object.entries(product.attributes).map(([key, val], i) => (
                 <div
@@ -380,7 +316,7 @@ export default async function ProductDetailPage({
         {/* Ürün açıklaması */}
         {product.description && (
           <section className="mb-12">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Ürün Açıklaması</h2>
+            <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-4">Ürün Açıklaması</h2>
             <div className="p-6 rounded-2xl bg-white border border-gray-200 shadow-sm">
               <p className="text-sm text-gray-700 leading-loose whitespace-pre-wrap">{product.description}</p>
             </div>
@@ -393,7 +329,7 @@ export default async function ProductDetailPage({
         {related.length > 0 && (
           <section className="mb-12">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-gray-900">Benzer Ürünler</h2>
+              <h2 className="text-base sm:text-lg font-bold text-gray-900">Benzer Ürünler</h2>
               {product.category && (
                 <Link
                   href={`/products?category=${encodeURIComponent(product.category)}`}
