@@ -48,14 +48,16 @@ const TRUST_ITEMS = [
   { Icon: Headphones, title: "7/24 Destek", sub: "Her zaman yanınızdayız" },
 ];
 
-const CATEGORY_ICONS: Record<string, string> = {
-  "Laptop": "💻", "Notebook": "💻", "Masaüstü PC": "🖥️",
-  "Akıllı Telefon": "📱", "Telefon": "📱", "Tablet": "📲",
-  "Ekran Kartı": "🎮", "GPU": "🎮", "İşlemci": "⚙️", "CPU": "⚙️",
-  "RAM": "🧠", "SSD & Depolama": "💾", "SSD": "💾",
-  "Monitör": "🖥️", "Kulaklık": "🎧", "Hoparlör": "🔊",
-  "Klavye & Mouse": "⌨️", "Ağ Ürünleri": "📡", "Aksesuarlar": "🔌",
-  "Soğutma": "❄️", "Anakart": "🔧", "Güç Kaynağı": "⚡",
+const CATEGORY_IMAGES: Record<string, string> = {
+  "Dizüstü Bilgisayar": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQcyWn47o_pHCoaGFDiwpzTxNdocgqbHdUPmXj8IG8hHP5vxW6ShWDTUk01&s=10",
+  "Akıllı Telefon": "https://loremflickr.com/400/300/smartphone,iphone/all?random=2",
+  "Bileşenler": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcScvM5dxEoCimRSQtM1yjV1iOAK_zKDcFVZ9tbCr7-GxHU-lrObydd8N8E&s=10",
+  "Monitör": "https://storage.ghost.io/c/65/97/65975283-c1f5-4a9b-8ea0-65b4ab8af1c6/content/images/wordpress/2023/01/PLS-ekran-nedir-1.jpg",
+  "Ses": "https://i.ytimg.com/vi/VcbGumcaFA8/maxresdefault.jpg",
+  "Depolama": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSqgy3_4ZcGF0wLW7QHjFFgCAHZdbIWqOJuC5UakkruinoFciy4VIBi7jc&s=10",
+  "Aksesuar": "https://loremflickr.com/400/300/keyboard,mouse/all?random=7",
+  "Kamera": "https://cdn.media.amplience.net/i/canon/canon-camera-connect-v3_hero_3e9270b6a43c411db096653d642fab2c",
+  "Masaüstü Bilgisayar": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSg3uGQWFrXMAxre0rlYz1m6q-CePIdkRLt-GdN2Q9wgrPGcCFJ5CY_bN33&s=10",
 };
 
 /* ============================================================
@@ -146,7 +148,7 @@ async function BestSellersSection() {
   return (
     <section className="mb-6 bg-white border border-gray-200 rounded-lg p-5">
       <SectionHeader
-        title="⭐ Çok Satanlar"
+        title="Çok Satanlar"
         subtitle="Bu hafta en çok tercih edilen ürünler"
         href="/products"
       />
@@ -317,25 +319,46 @@ async function CategoryQuickGrid() {
   const topCats = categories.slice(0, 8);
 
   return (
-    <section className="mb-6 bg-white border border-gray-200 rounded-lg p-5">
-      <h2 className="text-lg font-bold text-gray-900 mb-4">Kategorilere Göz At</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-        {topCats.map(cat => (
-          <Link
-            key={cat.name}
-            href={`/products?category=${encodeURIComponent(cat.name)}`}
-            className="flex flex-col items-center gap-2 py-4 bg-gray-50 border border-gray-200 rounded-lg
-                       hover:bg-blue-50 hover:border-blue-400 hover:shadow-sm transition-all group"
-          >
-            <span className="text-3xl group-hover:scale-110 transition-transform">
-              {CATEGORY_ICONS[cat.name] ?? "📦"}
-            </span>
-            <div className="text-center">
-              <p className="text-xs font-semibold text-gray-700 group-hover:text-blue-700">{cat.name}</p>
-              <p className="text-[10px] text-gray-400">{cat.productCount.toLocaleString("tr-TR")} ürün</p>
-            </div>
-          </Link>
-        ))}
+    <section className="mb-8">
+      <SectionHeader
+        title="Kategorilere Göz At"
+        href="/products"
+        linkLabel="Tüm Kategoriler"
+      />
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {topCats.map(cat => {
+          const fallbackImage = `https://loremflickr.com/400/300/gadget,tech/all?random=${cat.productCount}`;
+          const imageUrl = CATEGORY_IMAGES[cat.name] || fallbackImage;
+
+          return (
+            <Link
+              key={cat.name}
+              href={`/products?category=${encodeURIComponent(cat.name)}`}
+              className="relative group block overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-xl transition-all duration-300"
+            >
+              <div className="aspect-[4/3] w-full relative overflow-hidden bg-gray-100">
+                <Image
+                  src={imageUrl}
+                  alt={cat.name}
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  className="object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                {/* Gradient overlay for text readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-90 transition-opacity duration-300" />
+              </div>
+
+              <div className="absolute bottom-0 left-0 w-full p-4 flex flex-col justify-end">
+                <h3 className="text-lg sm:text-xl font-bold text-white mb-0.5 group-hover:text-blue-300 transition-colors">
+                  {cat.name}
+                </h3>
+                <p className="text-xs font-medium text-gray-300">
+                  {cat.productCount.toLocaleString("tr-TR")} Ürün Seçeneği
+                </p>
+              </div>
+            </Link>
+          );
+        })}
       </div>
     </section>
   );
@@ -350,7 +373,7 @@ export default function HomePage() {
 
       {/* 1. BANNER SLIDER */}
       <section className="mt-4 mb-6">
-        <Suspense fallback={<div className="w-full h-[280px] bg-gray-200 rounded-lg animate-pulse" />}>
+        <Suspense fallback={<div className="w-full h-[420px] bg-gray-900 rounded-xl animate-pulse" />}>
           <BannerSlider />
         </Suspense>
       </section>
@@ -425,10 +448,10 @@ export default function HomePage() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
           <div>
             <h2 className="text-2xl font-extrabold text-white">
-              1.033 Ürün — Hepsi Burada
+              1.030 Ürün — Hepsi Burada
             </h2>
             <p className="text-blue-200 text-sm mt-1">
-              Gerçek veritabanından gelen ürünleri keşfedin. Ücretsiz kargo, kolay iade.
+              Ürünleri keşfedin. Ücretsiz kargo, kolay iade.
             </p>
           </div>
           <Link
