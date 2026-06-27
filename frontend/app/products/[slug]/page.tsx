@@ -122,14 +122,29 @@ export default async function ProductDetailPage({
     .filter(p => p.category === product!.category && p.id !== product!.id)
     .slice(0, 6);
 
-  // Görsel kaynağı düzeltmesi (Virgülle ayrılmış string geliyorsa böl)
+  // Görsel kaynağı düzeltmesi
   let allImages: string[] = [];
-  if (product.imageUrls && product.imageUrls.length > 0) {
-    if (product.imageUrls.length === 1 && product.imageUrls[0].includes(',')) {
-      allImages = product.imageUrls[0].split(',');
-    } else {
-      allImages = product.imageUrls;
+  if (product.imageUrls) {
+    if (typeof product.imageUrls === 'string') {
+      allImages = (product.imageUrls as string).split(',');
+    } else if (Array.isArray(product.imageUrls)) {
+      if (product.imageUrls.length === 1 && typeof product.imageUrls[0] === 'string' && product.imageUrls[0].includes(',')) {
+        allImages = product.imageUrls[0].split(',');
+      } else {
+        // Zaten dizi ise ama içinde virgüllü elemanlar kalmışsa (opsiyonel güvenlik)
+        allImages = product.imageUrls.flatMap(url => typeof url === 'string' && url.includes(',') ? url.split(',') : url);
+      }
     }
+  }
+
+  // Sadece geçerli görsel URL'lerini (http, https veya / ile başlayan) filtrele ve boşlukları temizle
+  allImages = allImages
+    .map(url => typeof url === 'string' ? url.trim() : '')
+    .filter(url => url.startsWith('http') || url.startsWith('/'));
+
+  // Eğer tüm görseller filtrelenirse boş kalmaması için varsayılan bir resim ekleyelim (opsiyonel)
+  if (allImages.length === 0) {
+    allImages = []; // ProductGallery boş diziyi idare edebiliyor
   }
 
   return (
