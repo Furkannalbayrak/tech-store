@@ -42,9 +42,12 @@ async function fetchProducts(params: {
   category?: string;
   keyword?: string;
   brand?: string;
+  minPrice?: number;
+  maxPrice?: number;
   sort?: string;
   page?: number;
   size?: number;
+  onlyDiscount?: boolean;
 }): Promise<PagedResponse<ProductSummary>> {
   const q = new URLSearchParams();
   if (params.page != null) q.set("page", String(params.page - 1)); // Backend 0-indexed
@@ -66,6 +69,10 @@ async function fetchProducts(params: {
   const body = {
     category: params.category,
     keyword: params.keyword,
+    brand: params.brand,
+    minPrice: params.minPrice,
+    maxPrice: params.maxPrice,
+    onlyFeatured: false,
   };
 
   const res = await fetch(url, {
@@ -121,6 +128,10 @@ export default async function ProductsPage({
 
   const category = p.category;
   const keyword = p.keyword;
+  const brand = p.brand;
+  const minPrice = p.minPrice ? Number(p.minPrice) : undefined;
+  const maxPrice = p.maxPrice ? Number(p.maxPrice) : undefined;
+  const onlyDiscount = p.onlyDiscount === "1";
   const sort = p.sort ?? "default";
   const page = Number(p.page ?? "1");
 
@@ -137,8 +148,11 @@ export default async function ProductsPage({
     const resp = await fetchProducts({
       category,
       keyword,
+      brand,
+      minPrice,
+      maxPrice,
       sort,
-      page: 1,           // Her zaman ilk sayfayı çek (48 ürün)
+      page: 1,
       size: PAGE_SIZE_BACKEND,
     });
     allProducts = resp.content;
