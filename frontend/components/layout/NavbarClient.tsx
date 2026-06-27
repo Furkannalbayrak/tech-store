@@ -18,7 +18,7 @@ import { useRouter } from "next/navigation";
 import { useAuth, SignInButton, UserButton } from "@clerk/nextjs";
 import {
   Search, ShoppingCart, User, Menu, X,
-  ChevronDown, Cpu,
+  ChevronDown, Cpu, Sparkles, Loader2,
 } from "lucide-react";
 import type { CategoryInfo } from "@/lib/types/api.types";
 import { findGroup, MEGA_GROUPS } from "./Navbar";
@@ -122,6 +122,7 @@ export default function NavbarClient({ categories }: NavbarClientProps) {
   useEffect(() => setMounted(true), []);
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [isAiLoading, setIsAiLoading] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [openGroup, setOpenGroup] = useState<string | null>(null);
 
@@ -145,13 +146,49 @@ export default function NavbarClient({ categories }: NavbarClientProps) {
 
   const { groups, standalone } = buildGroupedCategories(categories);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!searchQuery.trim()) return;
-    const p = new URLSearchParams();
-    p.set("keyword", searchQuery.trim());
-    router.push(`/products?${p.toString()}`);
-    setSearchQuery("");
+    const q = searchQuery.trim();
+    if (!q) return;
+
+    setIsAiLoading(true);
+    try {
+      // AI Route Handler'a gönder
+      const res = await fetch("/api/ai-search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: q }),
+      });
+
+      const p = new URLSearchParams();
+
+      if (res.ok) {
+        const filters = await res.json();
+        if (filters.category)    p.set("category",    filters.category);
+        if (filters.keyword)     p.set("keyword",     filters.keyword);
+        if (filters.brand)       p.set("brand",       filters.brand);
+        if (filters.minPrice != null) p.set("minPrice", String(filters.minPrice));
+        if (filters.maxPrice != null) p.set("maxPrice", String(filters.maxPrice));
+        if (filters.onlyDiscount) p.set("onlyDiscount", "1");
+
+        // Hiç filtre çıkmadıysa keyword olarak ara
+        if (![...p.keys()].length) p.set("keyword", q);
+      } else {
+        // AI hata → keyword fallback
+        p.set("keyword", q);
+      }
+
+      router.push(`/products?${p.toString()}`);
+      setSearchQuery("");
+    } catch {
+      // Network hatası → keyword fallback
+      const p = new URLSearchParams();
+      p.set("keyword", q);
+      router.push(`/products?${p.toString()}`);
+      setSearchQuery("");
+    } finally {
+      setIsAiLoading(false);
+    }
   };
 
   const toggleGroup = (g: string) => setOpenGroup(prev => prev === g ? null : g);
@@ -189,24 +226,37 @@ export default function NavbarClient({ categories }: NavbarClientProps) {
                          focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-100
                          transition-all"
             >
+              {/* AI ikonu */}
+              <div className="flex items-center pl-3 pr-1 bg-white">
+                {isAiLoading
+                  ? <Loader2 className="w-4 h-4 text-purple-500 animate-spin" />
+                  : <Sparkles className="w-4 h-4 text-purple-400" />}
+              </div>
+
               {/* Metin girişi */}
               <input
                 id="navbar-search"
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Ürün, marka veya kategori ara..."
-                className="flex-1 px-4 text-sm text-gray-800 placeholder-gray-400 bg-white focus:outline-none"
+                placeholder="AI ile ara: &quot;2000₺ altı oyun laptopı&quot;..."
+                disabled={isAiLoading}
+                className="flex-1 px-2 text-sm text-gray-800 placeholder-gray-400 bg-white focus:outline-none disabled:opacity-60"
               />
 
               {/* Ara butonu */}
               <button
                 type="submit"
                 id="navbar-search-btn"
-                className="px-5 bg-blue-700 hover:bg-blue-800 text-white transition-colors flex-shrink-0 flex items-center gap-1.5"
+                disabled={isAiLoading}
+                className="px-5 bg-blue-700 hover:bg-blue-800 disabled:bg-blue-400 text-white transition-colors flex-shrink-0 flex items-center gap-1.5"
               >
-                <Search className="w-4 h-4" />
-                <span className="hidden md:inline text-sm font-semibold">Ara</span>
+                {isAiLoading
+                  ? <Loader2 className="w-4 h-4 animate-spin" />
+                  : <Search className="w-4 h-4" />}
+                <span className="hidden md:inline text-sm font-semibold">
+                  {isAiLoading ? "Düşünüyor..." : "Ara"}
+                </span>
               </button>
             </form>
 
@@ -339,8 +389,8 @@ export default function NavbarClient({ categories }: NavbarClientProps) {
 
               <div className="px-6 py-4 border-b border-gray-100 lg:hidden">
                 <form
-                  onSubmit={(e) => {
-                    handleSearch(e);
+                  onSubmit={async (e) => {
+                    await handleSearch(e);
                     setIsMobileOpen(false);
                   }}
                   className="flex items-stretch h-10 rounded-md overflow-hidden
@@ -348,18 +398,27 @@ export default function NavbarClient({ categories }: NavbarClientProps) {
                              focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-100
                              transition-all"
                 >
+                  <div className="flex items-center pl-3 pr-1 bg-white">
+                    {isAiLoading
+                      ? <Loader2 className="w-4 h-4 text-purple-500 animate-spin" />
+                      : <Sparkles className="w-4 h-4 text-purple-400" />}
+                  </div>
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
-                    placeholder="Ürün, marka veya kategori ara..."
-                    className="flex-1 px-4 text-sm text-gray-800 placeholder-gray-400 bg-white focus:outline-none"
+                    placeholder="AI ile ara..."
+                    disabled={isAiLoading}
+                    className="flex-1 px-2 text-sm text-gray-800 placeholder-gray-400 bg-white focus:outline-none disabled:opacity-60"
                   />
                   <button
                     type="submit"
-                    className="px-4 bg-blue-700 hover:bg-blue-800 text-white transition-colors flex-shrink-0 flex items-center justify-center"
+                    disabled={isAiLoading}
+                    className="px-4 bg-blue-700 hover:bg-blue-800 disabled:bg-blue-400 text-white transition-colors flex-shrink-0 flex items-center justify-center"
                   >
-                    <Search className="w-4 h-4" />
+                    {isAiLoading
+                      ? <Loader2 className="w-4 h-4 animate-spin" />
+                      : <Search className="w-4 h-4" />}
                   </button>
                 </form>
               </div>
